@@ -150,6 +150,40 @@ func part1(seeds []int, seedToSoil, soilToFertilizer, fertilizerToWater, waterTo
 	return lowestLocation
 }
 
+func generateSeedRange(seeds []int) [][]int {
+	var seedRange [][]int
+
+	for i := 0; i < len(seeds); i += 2 {
+		seedRange = append(seedRange, []int{seeds[i], seeds[i+1]})
+	}
+	return seedRange
+}
+
+func part2(seeds []int, seedToSoil, soilToFertilizer, fertilizerToWater, waterToLight, lightToTemperature, temperatureToHumidity, humidityToLocation [][]int) int {
+	lowestLocation := math.MaxInt
+
+	arraySeedRange := generateSeedRange(seeds)
+
+	for _, seedRange := range arraySeedRange {
+		for seed := seedRange[0]; seed < seedRange[0]+seedRange[1]; seed++ {
+			soil := getSoilForSeed(seedToSoil, seed)
+			fertilizer := getfertilizerForSoil(soilToFertilizer, soil)
+			water := getWaterForFertilizer(fertilizerToWater, fertilizer)
+			light := getLightForWater(waterToLight, water)
+			temperature := getTemperatureForLight(lightToTemperature, light)
+			humidity := getHumidityForTemperature(temperatureToHumidity, temperature)
+			location := getLocationForHumidity(humidityToLocation, humidity)
+
+			if location < lowestLocation {
+				lowestLocation = location
+			}
+
+		}
+	}
+
+	return lowestLocation
+}
+
 func main() {
 	file, err := os.ReadFile("input")
 	if err != nil {
@@ -163,4 +197,7 @@ func main() {
 
 	// Part 1
 	fmt.Printf("Part 1: %d\n", part1(seeds, rangeArray[0], rangeArray[1], rangeArray[2], rangeArray[3], rangeArray[4], rangeArray[5], rangeArray[6]))
+
+	// Part 2
+	fmt.Printf("Part 2: %d\n", part2(seeds, rangeArray[0], rangeArray[1], rangeArray[2], rangeArray[3], rangeArray[4], rangeArray[5], rangeArray[6]))
 }
