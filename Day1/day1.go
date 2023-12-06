@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func part1(data string) int {
+func partOne(data string) int {
 	calibrationValue := 0
 	for _, line := range strings.Split(data, "\n") {
 		leftMost := -1
@@ -32,7 +32,7 @@ func part1(data string) int {
 	return calibrationValue
 }
 
-func part2(data string) int {
+func partTwo(data string) int {
 	replaceMap := map[*regexp.Regexp]string{
 		regexp.MustCompile("(o)(ne)"):   " 1 ",
 		regexp.MustCompile("(t)(wo)"):   " 2 ",
@@ -49,7 +49,7 @@ func part2(data string) int {
 		data = k.ReplaceAllString(data, "$1"+v+"$2")
 	}
 
-	return part1(data)
+	return partOne(data)
 }
 
 func main() {
@@ -61,8 +61,8 @@ func main() {
 	fileString := string(file)
 
 	// Part 1
-	fmt.Printf("Part 1: %d\n", part1(fileString))
+	fmt.Printf("Part 1: %d\n", partOne(fileString))
 
 	// Part 2
-	fmt.Printf("Part 2: %d\n", part2(fileString))
+	fmt.Printf("Part 2: %d\n", partTwo(fileString))
 }

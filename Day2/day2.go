@@ -16,7 +16,7 @@ func validRound(MAXDICES []int, game []int) bool {
 	return true
 }
 
-func part1(MAXDICES []int, games []string) int {
+func partOne(MAXDICES []int, games []string) int {
 	var validGameIDSum int
 
 gameLoop:
@@ -59,7 +59,7 @@ func product(game []int) int {
 	return result
 }
 
-func part2(games []string) int {
+func partTwo(games []string) int {
 	var sumOfProducts int
 
 	for _, game := range games {
@@ -99,8 +99,8 @@ func main() {
 	fileArray := strings.Split(string(file), "\n")
 
 	// Part 1
-	fmt.Printf("Part 1: %d\n", part1(MAXDICES, fileArray[:len(fileArray)-1]))
+	fmt.Printf("Part 1: %d\n", partOne(MAXDICES, fileArray[:len(fileArray)-1]))
 
 	// Part 2
-	fmt.Printf("Part 2: %d\n", part2(fileArray[:len(fileArray)-1]))
+	fmt.Printf("Part 2: %d\n", partTwo(fileArray[:len(fileArray)-1]))
 }

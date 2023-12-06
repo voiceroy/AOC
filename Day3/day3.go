@@ -76,7 +76,7 @@ func getNumberLocations(data []string) []number {
 	return numberLocations
 }
 
-func part1(data []string) int {
+func partOne(data []string) int {
 	var sumPartNumbers int
 	var numberLocations = getNumberLocations(data)
 
@@ -103,7 +103,7 @@ func getGearLocations(data []string) []gear {
 	return gearLocations
 }
 
-func part2(data []string) int {
+func partTwo(data []string) int {
 	var sumOfGearRatios int
 	var numberLocations []number
 	var gearLocations = getGearLocations(data)
@@ -148,8 +148,8 @@ func main() {
 	fileArray = fileArray[:len(fileArray)-1]
 
 	// Part 1
-	fmt.Printf("Part 1: %d\n", part1(fileArray))
+	fmt.Printf("Part 1: %d\n", partOne(fileArray))
 
 	// Part 2
-	fmt.Printf("Part 2: %d\n", part2(fileArray))
+	fmt.Printf("Part 2: %d\n", partTwo(fileArray))
 }

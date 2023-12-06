@@ -17,7 +17,7 @@ func parseInts(array []string) []int {
 	return parsed
 }
 
-func part1(data []string) int {
+func partOne(data []string) int {
 	var product = 1
 
 	timeArray := parseInts(strings.Fields(strings.Split(data[0], ":")[1]))
@@ -37,7 +37,7 @@ func part1(data []string) int {
 	return product
 }
 
-func part2(data []string) int {
+func partTwo(data []string) int {
 	var product = 1
 
 	time, _ := strconv.Atoi(strings.Replace(strings.Split(data[0], ":")[1], " ", "", -1))
@@ -64,8 +64,8 @@ func main() {
 	fileArray = fileArray[:len(fileArray)-1]
 
 	// Part 1
-	fmt.Printf("Part 1: %d\n", part1(fileArray))
+	fmt.Printf("Part 1: %d\n", partOne(fileArray))
 
 	// Part 2
-	fmt.Printf("Part 2: %d\n", part2(fileArray))
+	fmt.Printf("Part 2: %d\n", partTwo(fileArray))
 }

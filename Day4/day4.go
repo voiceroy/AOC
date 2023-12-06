@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func part1(data []string) int {
+func partOne(data []string) int {
 	var allCardsWorth int
 
 	for _, line := range data {
@@ -36,7 +36,7 @@ func generateRange(start, end int) []int {
 	return numRange
 }
 
-func part2(data []string) int {
+func partTwo(data []string) int {
 	var cardWinsNoOfCards = make(map[int]int)
 	var cardQueue []int
 
@@ -79,8 +79,8 @@ func main() {
 	fileArray = fileArray[:len(fileArray)-1]
 
 	// Part 1
-	fmt.Printf("Part 1: %d\n", part1(fileArray))
+	fmt.Printf("Part 1: %d\n", partOne(fileArray))
 
 	// Part 2
-	fmt.Printf("Part 2: %d\n", part2(fileArray))
+	fmt.Printf("Part 2: %d\n", partTwo(fileArray))
 }

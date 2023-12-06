@@ -130,7 +130,7 @@ func getLocationForHumidity(humidityToLocation [][]int, humidity int) int {
 	return humidity
 }
 
-func part1(seeds []int, seedToSoil, soilToFertilizer, fertilizerToWater, waterToLight, lightToTemperature, temperatureToHumidity, humidityToLocation [][]int) int {
+func partOne(seeds []int, seedToSoil, soilToFertilizer, fertilizerToWater, waterToLight, lightToTemperature, temperatureToHumidity, humidityToLocation [][]int) int {
 	lowestLocation := math.MaxInt
 
 	for _, seed := range seeds {
@@ -159,7 +159,7 @@ func generateSeedRange(seeds []int) [][]int {
 	return seedRange
 }
 
-func part2(seeds []int, seedToSoil, soilToFertilizer, fertilizerToWater, waterToLight, lightToTemperature, temperatureToHumidity, humidityToLocation [][]int) int {
+func partTwo(seeds []int, seedToSoil, soilToFertilizer, fertilizerToWater, waterToLight, lightToTemperature, temperatureToHumidity, humidityToLocation [][]int) int {
 	lowestLocation := math.MaxInt
 
 	arraySeedRange := generateSeedRange(seeds)
@@ -196,8 +196,8 @@ func main() {
 	var rangeArray [][][]int = generateMaps(fileArray)
 
 	// Part 1
-	fmt.Printf("Part 1: %d\n", part1(seeds, rangeArray[0], rangeArray[1], rangeArray[2], rangeArray[3], rangeArray[4], rangeArray[5], rangeArray[6]))
+	fmt.Printf("Part 1: %d\n", partOne(seeds, rangeArray[0], rangeArray[1], rangeArray[2], rangeArray[3], rangeArray[4], rangeArray[5], rangeArray[6]))
 
 	// Part 2
-	fmt.Printf("Part 2: %d\n", part2(seeds, rangeArray[0], rangeArray[1], rangeArray[2], rangeArray[3], rangeArray[4], rangeArray[5], rangeArray[6]))
+	fmt.Printf("Part 2: %d\n", partTwo(seeds, rangeArray[0], rangeArray[1], rangeArray[2], rangeArray[3], rangeArray[4], rangeArray[5], rangeArray[6]))
 }
