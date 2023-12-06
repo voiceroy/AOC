@@ -31,9 +31,24 @@ func part1(data []string) int {
 				possible++
 			}
 		}
-
 		product *= possible
 	}
+
+	return product
+}
+
+func part2(data []string) int {
+	var product = 1
+
+	time, _ := strconv.Atoi(strings.Replace(strings.Split(data[0], ":")[1], " ", "", -1))
+	distance, _ := strconv.Atoi(strings.Replace(strings.Split(data[1], ":")[1], " ", "", -1))
+	possible := 0
+	for i := 0; i < time+1; i++ {
+		if i*(time-i) > distance {
+			possible++
+		}
+	}
+	product *= possible
 
 	return product
 }
@@ -50,4 +65,7 @@ func main() {
 
 	// Part 1
 	fmt.Printf("Part 1: %d\n", part1(fileArray))
+
+	// Part 2
+	fmt.Printf("Part 2: %d\n", part2(fileArray))
 }
