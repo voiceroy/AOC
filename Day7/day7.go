@@ -75,7 +75,7 @@ func morphHand(oldHand string) string {
 	}
 }
 
-func processHands(data []string, part int) []hand {
+func processHands(data []string) []hand {
 	var processedHands []hand
 	var handString string
 	var bid int
@@ -202,7 +202,7 @@ func main() {
 	}
 
 	fileArray := strings.Split(strings.TrimSpace(string(file)), "\n")
-	processedHands := processHands(fileArray, 1)
+	processedHands := processHands(fileArray)
 
 	// Part 1
 	sortHands(processedHands)
