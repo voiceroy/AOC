@@ -8,9 +8,11 @@ import (
 )
 
 type hand struct {
-	hand     string
-	handType int
-	bid      int
+	hand            string
+	morphedHand     string
+	handType        int
+	morphedHandType int
+	bid             int
 }
 
 func getHandType(hand string) int {
@@ -80,7 +82,8 @@ func processHands(data []string, part int) []hand {
 
 	for _, line := range data {
 		_, _ = fmt.Sscanf(line, "%s %d", &handString, &bid)
-		processedHands = append(processedHands, hand{handString, getHandType(handString), bid})
+		morphedString := morphHand(handString)
+		processedHands = append(processedHands, hand{handString, morphedString, getHandType(handString), getHandType(morphedString), bid})
 	}
 
 	return processedHands
@@ -139,6 +142,58 @@ func partOne(hands []hand) int {
 	return totalWinnings
 }
 
+func compareHandsWithNewRules(hand1, hand2 hand) int {
+	var result int
+
+	cardPriority := map[string]int{
+		"A": 13,
+		"K": 12,
+		"Q": 11,
+		"T": 10,
+		"9": 9,
+		"8": 8,
+		"7": 7,
+		"6": 6,
+		"5": 5,
+		"4": 4,
+		"3": 3,
+		"2": 2,
+		"J": 1,
+	}
+
+	if hand1.morphedHandType == hand2.morphedHandType {
+		for i := 0; i < len(hand1.hand); i++ {
+			if cardPriority[string(hand1.hand[i])] > cardPriority[string(hand2.hand[i])] {
+				result = 1
+				break
+			} else if cardPriority[string(hand1.hand[i])] < cardPriority[string(hand2.hand[i])] {
+				result = -1
+				break
+			}
+		}
+	} else if hand1.morphedHandType > hand2.morphedHandType {
+		result = 1
+	} else if hand1.morphedHandType < hand2.morphedHandType {
+		result = -1
+	}
+
+	return result
+}
+
+func sortHandsWithNewRules(hands []hand) {
+	slices.SortStableFunc(hands, compareHandsWithNewRules)
+}
+
+func partTwo(hands []hand) int {
+	var totalWinnings int
+
+	for i, hand := range hands {
+		totalWinnings += (i + 1) * hand.bid
+	}
+
+	return totalWinnings
+}
+
 func main() {
 	file, err := os.ReadFile("input")
 	if err != nil {
@@ -152,4 +207,8 @@ func main() {
 	// Part 1
 	sortHands(processedHands)
 	fmt.Printf("Part 1: %d\n", partOne(processedHands))
+
+	// Part 2
+	sortHandsWithNewRules(processedHands)
+	fmt.Printf("Part 2: %d\n", partTwo(processedHands))
 }
