@@ -58,6 +58,24 @@ func partOne(data [][]int) int {
 	return sumExtrapolated
 }
 
+func reverseArray(row []int) []int {
+	var reversedArray []int
+	for i := range row {
+		reversedArray = append(reversedArray, row[len(row)-i-1])
+	}
+
+	return reversedArray
+}
+
+func partTwo(data [][]int) int {
+	var sumExtrapolated int
+	for _, row := range data {
+		sumExtrapolated += calculateNextTerm(reverseArray(row))
+	}
+
+	return sumExtrapolated
+}
+
 func main() {
 	file, err := os.ReadFile("input")
 	if err != nil {
@@ -70,4 +88,7 @@ func main() {
 
 	// Part 1
 	fmt.Printf("Part 1: %d\n", partOne(parsedInts))
+
+	// Part 2
+	fmt.Printf("Part 2: %d\n", partTwo(parsedInts))
 }
