@@ -9,9 +9,9 @@ import (
 
 func parseInts(data []string) [][]int {
 	var parsedInts [][]int
-
 	for i, row := range data {
 		parsedInts = append(parsedInts, []int{})
+
 		for _, num := range strings.Fields(row) {
 			value, _ := strconv.Atoi(num)
 			parsedInts[i] = append(parsedInts[i], value)
