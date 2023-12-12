@@ -65,6 +65,10 @@ outerLoop:
 	return sumLengths
 }
 
+func partTwo(data []string, scale int) int {
+	return partOne(data, scale)
+}
+
 func main() {
 	file, err := os.ReadFile("input")
 	if err != nil {
@@ -76,4 +80,7 @@ func main() {
 
 	// Part 1
 	fmt.Printf("Part 1: %d\n", partOne(fileArray, 2))
+
+	// Part 2
+	fmt.Printf("Part 2: %d\n", partTwo(fileArray, 1000000))
 }
