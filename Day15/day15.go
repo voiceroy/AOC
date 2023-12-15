@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -46,22 +47,23 @@ func partTwo(data string) int {
 	var lensPower int
 	var boxes [256][]lens
 
+	pattern := regexp.MustCompile(`(\w+)([=-])(\d*)`)
 	for _, seq := range strings.Split(data, ",") {
-		if strings.Contains(seq, "=") {
-			power, _ := strconv.Atoi(string(seq[len(seq)-1]))
-			label := seq[:len(seq)-2]
-			location := hash(label)
+		match := pattern.FindStringSubmatch(seq)
+		label := match[1]
+		location := hash(label)
 
+		switch match[2] {
+		case "=":
+			power, _ := strconv.Atoi(match[3])
 			currentLens := lens{label, power}
+
 			if index, found := findIndex(boxes[location], currentLens.label); found {
 				boxes[location][index] = currentLens
 			} else {
 				boxes[location] = append(boxes[location], lens{label, power})
 			}
-		} else {
-			label := seq[:len(seq)-1]
-			location := hash(label)
-
+		case "-":
 			if index, found := findIndex(boxes[location], label); found {
 				boxes[location] = append(boxes[location][:index], boxes[location][index+1:]...)
 			}
