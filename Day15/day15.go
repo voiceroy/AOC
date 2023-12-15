@@ -34,12 +34,6 @@ func partOne(data string) int {
 	return hashSum
 }
 
-func lensIndex(currentLens lens) func(otherLens lens) bool {
-	return func(otherLens lens) bool {
-		return currentLens.label == otherLens.label
-	}
-}
-
 func partTwo(data string) int {
 	var lensPower int
 	var boxes [256][]lens
@@ -53,13 +47,17 @@ func partTwo(data string) int {
 
 		switch match[2] {
 		case "=":
-			if index := slices.IndexFunc(boxes[location], lensIndex(currentLens)); index >= 0 {
+			if index := slices.IndexFunc(boxes[location], func(otherLens lens) bool {
+				return currentLens.label == otherLens.label
+			}); index >= 0 {
 				boxes[location][index] = currentLens
 			} else {
 				boxes[location] = append(boxes[location], currentLens)
 			}
 		case "-":
-			if index := slices.IndexFunc(boxes[location], lensIndex(currentLens)); index >= 0 {
+			if index := slices.IndexFunc(boxes[location], func(otherLens lens) bool {
+				return currentLens.label == otherLens.label
+			}); index >= 0 {
 				boxes[location] = slices.Delete(boxes[location], index, index+1)
 			}
 		}
