@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -33,14 +34,10 @@ func partOne(data string) int {
 	return hashSum
 }
 
-func findIndex(array []lens, label string) (int, bool) {
-	for i := range array {
-		if array[i].label == label {
-			return i, true
-		}
+func lensIndex(currentLens lens) func(otherLens lens) bool {
+	return func(otherLens lens) bool {
+		return currentLens.label == otherLens.label
 	}
-
-	return -1, false
 }
 
 func partTwo(data string) int {
@@ -50,22 +47,20 @@ func partTwo(data string) int {
 	pattern := regexp.MustCompile(`(\w+)([=-])(\d*)`)
 	for _, seq := range strings.Split(data, ",") {
 		match := pattern.FindStringSubmatch(seq)
-		label := match[1]
-		location := hash(label)
+		label, location := match[1], hash(match[1])
+		focalLength, _ := strconv.Atoi(match[3])
+		currentLens := lens{label, focalLength}
 
 		switch match[2] {
 		case "=":
-			power, _ := strconv.Atoi(match[3])
-			currentLens := lens{label, power}
-
-			if index, found := findIndex(boxes[location], currentLens.label); found {
+			if index := slices.IndexFunc(boxes[location], lensIndex(currentLens)); index >= 0 {
 				boxes[location][index] = currentLens
 			} else {
-				boxes[location] = append(boxes[location], lens{label, power})
+				boxes[location] = append(boxes[location], currentLens)
 			}
 		case "-":
-			if index, found := findIndex(boxes[location], label); found {
-				boxes[location] = append(boxes[location][:index], boxes[location][index+1:]...)
+			if index := slices.IndexFunc(boxes[location], lensIndex(currentLens)); index >= 0 {
+				boxes[location] = slices.Delete(boxes[location], index, index+1)
 			}
 		}
 	}
