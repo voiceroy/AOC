@@ -1,9 +1,11 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
 	"math"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -53,135 +55,84 @@ func generateMaps(data []string) [][][]int {
 
 		case strings.HasPrefix(lines[0], "humidity-to-location map"):
 			mapArray[6] = parseIntsFromLines(lines[1:])
-			mapArray[6] = mapArray[6][:len(mapArray[6])-1]
 		}
 	}
 
 	return mapArray
 }
 
-func getSoilForSeed(seedToSoil [][]int, seed int) int {
-	for _, row := range seedToSoil {
-		if row[1] <= seed && seed < row[1]+row[2] {
-			return row[0] + seed - row[1]
+func getDestination(mapping *[][]int, src int) int {
+	for _, row := range *mapping {
+		if row[1] <= src && src < row[1]+row[2] {
+			// fmt.Printf("Start: %d, End: %d, Old: %d, Mapped: %d\n", row[0], row[0]+row[2], src, row[0]+src-row[1])
+			return src + row[0] - row[1]
 		}
 	}
 
-	return seed
+	return src
 }
 
-func getfertilizerForSoil(soilToFertilizer [][]int, soil int) int {
-	for _, row := range soilToFertilizer {
-		if row[1] <= soil && soil <= row[1]+row[2] {
-			return row[0] + soil - row[1]
+func partOne(seeds *[]int, maps *[][][]int) int {
+	lowestValue := math.MaxInt
+	for _, value := range *seeds {
+		for _, mapping := range *maps {
+			value = getDestination(&mapping, value)
+		}
+
+		if value < lowestValue {
+			lowestValue = value
 		}
 	}
 
-	return soil
+	return lowestValue
 }
 
-func getWaterForFertilizer(fertilizerToWater [][]int, fertilizer int) int {
-	for _, row := range fertilizerToWater {
-		if row[1] <= fertilizer && fertilizer <= row[1]+row[2] {
-			return row[0] + fertilizer - row[1]
-		}
+func generateSeedRanges(seeds *[]int) [][]int {
+	var seedRanges [][]int
+	for i := 0; i < len(*seeds); i += 2 {
+		seedRanges = append(seedRanges, []int{(*seeds)[i], (*seeds)[i] + (*seeds)[i+1]})
 	}
 
-	return fertilizer
+	return seedRanges
 }
 
-func getLightForWater(waterToLight [][]int, water int) int {
-	for _, row := range waterToLight {
-		if row[1] <= water && water <= row[1]+row[2] {
-			return row[0] + water - row[1]
-		}
-	}
+func partTwo(seeds *[]int, maps *[][][]int) int {
+	var seedRanges = generateSeedRanges(seeds)
 
-	return water
-}
+	for _, mapping := range *maps {
+		var splitRanges [][]int
+		for len(seedRanges) > 0 {
+			seedRange := seedRanges[len(seedRanges)-1]
+			seedRanges = seedRanges[:len(seedRanges)-1]
 
-func getTemperatureForLight(lightToTemperature [][]int, light int) int {
-	for _, row := range lightToTemperature {
-		if row[1] <= light && light <= row[1]+row[2] {
-			return row[0] + light - row[1]
-		}
-	}
-
-	return light
-}
-
-func getHumidityForTemperature(temperatureToHumidity [][]int, temperature int) int {
-	for _, row := range temperatureToHumidity {
-		if row[1] <= temperature && temperature <= row[1]+row[2] {
-			return row[0] + temperature - row[1]
-		}
-	}
-
-	return temperature
-}
-
-func getLocationForHumidity(humidityToLocation [][]int, humidity int) int {
-	for _, row := range humidityToLocation {
-		if row[1] <= humidity && humidity <= row[1]+row[2] {
-			return row[0] + humidity - row[1]
-		}
-	}
-
-	return humidity
-}
-
-func partOne(seeds []int, seedToSoil, soilToFertilizer, fertilizerToWater, waterToLight, lightToTemperature, temperatureToHumidity, humidityToLocation [][]int) int {
-	lowestLocation := math.MaxInt
-
-	for _, seed := range seeds {
-		soil := getSoilForSeed(seedToSoil, seed)
-		fertilizer := getfertilizerForSoil(soilToFertilizer, soil)
-		water := getWaterForFertilizer(fertilizerToWater, fertilizer)
-		light := getLightForWater(waterToLight, water)
-		temperature := getTemperatureForLight(lightToTemperature, light)
-		humidity := getHumidityForTemperature(temperatureToHumidity, temperature)
-		location := getLocationForHumidity(humidityToLocation, humidity)
-
-		if location < lowestLocation {
-			lowestLocation = location
-		}
-	}
-
-	return lowestLocation
-}
-
-func generateSeedRange(seeds []int) [][]int {
-	var seedRange [][]int
-
-	for i := 0; i < len(seeds); i += 2 {
-		seedRange = append(seedRange, []int{seeds[i], seeds[i+1]})
-	}
-	return seedRange
-}
-
-func partTwo(seeds []int, seedToSoil, soilToFertilizer, fertilizerToWater, waterToLight, lightToTemperature, temperatureToHumidity, humidityToLocation [][]int) int {
-	lowestLocation := math.MaxInt
-
-	arraySeedRange := generateSeedRange(seeds)
-
-	for _, seedRange := range arraySeedRange {
-		for seed := seedRange[0]; seed < seedRange[0]+seedRange[1]; seed++ {
-			soil := getSoilForSeed(seedToSoil, seed)
-			fertilizer := getfertilizerForSoil(soilToFertilizer, soil)
-			water := getWaterForFertilizer(fertilizerToWater, fertilizer)
-			light := getLightForWater(waterToLight, water)
-			temperature := getTemperatureForLight(lightToTemperature, light)
-			humidity := getHumidityForTemperature(temperatureToHumidity, temperature)
-			location := getLocationForHumidity(humidityToLocation, humidity)
-
-			if location < lowestLocation {
-				lowestLocation = location
+			var broken bool
+			seedStart, seedEnd := seedRange[0], seedRange[1]
+			for _, interval := range mapping {
+				broken = false
+				overlapStart := max(seedStart, interval[1])
+				overlapEnd := min(seedEnd, interval[1]+interval[2])
+				if overlapStart < overlapEnd {
+					splitRanges = append(splitRanges, []int{overlapStart - interval[1] + interval[0], overlapEnd - interval[1] + interval[0]})
+					if overlapStart > seedStart {
+						seedRanges = append(seedRanges, []int{seedStart, overlapStart})
+					}
+					if seedEnd > overlapEnd {
+						seedRanges = append(seedRanges, []int{overlapEnd, seedEnd})
+					}
+					broken = true
+					break
+				}
 			}
 
+			if !broken {
+				splitRanges = append(splitRanges, []int{seedStart, seedEnd})
+			}
 		}
+
+		seedRanges = splitRanges
 	}
 
-	return lowestLocation
+	return slices.MinFunc(seedRanges, func(a, b []int) int { return cmp.Compare(a[0], b[0]) })[0]
 }
 
 func main() {
@@ -191,13 +142,13 @@ func main() {
 		return
 	}
 
-	fileArray := strings.Split(string(file), "\n\n")
+	fileArray := strings.Split(strings.TrimSpace(string(file)), "\n\n")
 	var seeds = parseInts(strings.Fields(strings.Split(fileArray[0], ":")[1]))
-	var rangeArray [][][]int = generateMaps(fileArray)
+	var mappings [][][]int = generateMaps(fileArray)
 
 	// Part 1
-	fmt.Printf("Part 1: %d\n", partOne(seeds, rangeArray[0], rangeArray[1], rangeArray[2], rangeArray[3], rangeArray[4], rangeArray[5], rangeArray[6]))
+	fmt.Printf("Part 1: %d\n", partOne(&seeds, &mappings))
 
 	// Part 2
-	fmt.Printf("Part 2: %d\n", partTwo(seeds, rangeArray[0], rangeArray[1], rangeArray[2], rangeArray[3], rangeArray[4], rangeArray[5], rangeArray[6]))
+	fmt.Printf("Part 2: %d\n", partTwo(&seeds, &mappings))
 }
