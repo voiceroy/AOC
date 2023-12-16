@@ -6,83 +6,47 @@ import (
 	"strings"
 )
 
-func validRound(MAXDICES []int, game []int) bool {
-	for i := 0; i < len(MAXDICES); i++ {
-		if !(MAXDICES[i] >= game[i]) {
-			return false
-		}
-	}
-
-	return true
-}
-
 func partOne(MAXDICES []int, games []string) int {
 	var validGameIDSum int
-
-gameLoop:
 	for gameID, game := range games {
-		diceSeenThisRound := []int{0, 0, 0} // [red, green, blue]
-		dieCount := 0
-		dieColor := ""
-
-		rounds := strings.Split(strings.Split(game, ":")[1], ";")
-		for _, round := range rounds {
-			for _, die := range strings.Split(round, ",") {
-				_, _ = fmt.Sscanf(die, "%d %s", &dieCount, &dieColor)
-
-				switch dieColor {
-				case "red":
-					diceSeenThisRound[0] = dieCount
-				case "green":
-					diceSeenThisRound[1] = dieCount
-				case "blue":
-					diceSeenThisRound[2] = dieCount
-				}
-
-				if !validRound(MAXDICES, diceSeenThisRound) {
-					continue gameLoop
-				}
-			}
+		diceSeenThisGame := map[string]int{
+			"red":   0,
+			"green": 0,
+			"blue":  0,
 		}
-		validGameIDSum += gameID + 1
+		dieCount, dieColor := 0, ""
+
+		rounds := strings.ReplaceAll(strings.TrimSpace(strings.Split(game, ": ")[1]), ";", ",")
+		for _, die := range strings.Split(rounds, ",") {
+			_, _ = fmt.Sscanf(die, "%d %s", &dieCount, &dieColor)
+			diceSeenThisGame[dieColor] = max(diceSeenThisGame[dieColor], dieCount)
+		}
+
+		if diceSeenThisGame["red"] <= 12 && diceSeenThisGame["green"] <= 13 && diceSeenThisGame["blue"] <= 14 {
+			validGameIDSum += gameID + 1
+		}
 	}
 
 	return validGameIDSum
 }
 
-func product(game []int) int {
-	result := 1
-	for i := 0; i < len(game); i++ {
-		result *= game[i]
-	}
-
-	return result
-}
-
 func partTwo(games []string) int {
 	var sumOfProducts int
-
 	for _, game := range games {
-		maxDiceThisRound := []int{0, 0, 0}
-		dieCount := 0
-		dieColor := ""
-
-		rounds := strings.Split(strings.Split(game, ":")[1], ";")
-		for _, round := range rounds {
-			for _, die := range strings.Split(round, ",") {
-				_, _ = fmt.Sscanf(die, "%d %s", &dieCount, &dieColor)
-
-				switch dieColor {
-				case "red":
-					maxDiceThisRound[0] = max(maxDiceThisRound[0], dieCount)
-				case "green":
-					maxDiceThisRound[1] = max(maxDiceThisRound[1], dieCount)
-				case "blue":
-					maxDiceThisRound[2] = max(maxDiceThisRound[2], dieCount)
-				}
-			}
+		maxDiceThisGame := map[string]int{
+			"red":   0,
+			"green": 0,
+			"blue":  0,
 		}
-		sumOfProducts += product(maxDiceThisRound)
+		dieCount, dieColor := 0, ""
+
+		rounds := strings.ReplaceAll(strings.TrimSpace(strings.Split(game, ": ")[1]), ";", ",")
+		for _, die := range strings.Split(rounds, ",") {
+			_, _ = fmt.Sscanf(die, "%d %s", &dieCount, &dieColor)
+			maxDiceThisGame[dieColor] = max(maxDiceThisGame[dieColor], dieCount)
+		}
+
+		sumOfProducts += maxDiceThisGame["red"] * maxDiceThisGame["green"] * maxDiceThisGame["blue"]
 	}
 
 	return sumOfProducts
@@ -95,12 +59,12 @@ func main() {
 		return
 	}
 
-	var MAXDICES = []int{12, 13, 14}
-	fileArray := strings.Split(string(file), "\n")
+	MAXDICES := []int{12, 13, 14}
+	fileArray := strings.Split(strings.TrimSpace(string(file)), "\n")
 
 	// Part 1
-	fmt.Printf("Part 1: %d\n", partOne(MAXDICES, fileArray[:len(fileArray)-1]))
+	fmt.Printf("Part 1: %d\n", partOne(MAXDICES, fileArray))
 
 	// Part 2
-	fmt.Printf("Part 2: %d\n", partTwo(fileArray[:len(fileArray)-1]))
+	fmt.Printf("Part 2: %d\n", partTwo(fileArray))
 }

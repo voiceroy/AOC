@@ -3,139 +3,93 @@ package main
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
-	"unicode"
 )
 
-type number struct {
-	value       string
+type Number struct {
+	value       int
 	row         int
 	columnStart int
 	columnEnd   int
 }
 
-type gear struct {
-	row      int
-	column   int
-	adjacent int
+type Gear struct {
+	row    int
+	column int
 }
 
-func checkNumber(data []string, possibleNumber number, validSymbols string) bool {
-	var validNumber bool
-	columnStart := max(0, possibleNumber.columnStart-1)
-	columnEnd := min(possibleNumber.columnEnd+1, len(data[0]))
-
-	// Top Row
-	if possibleNumber.row-1 >= 0 {
-		validNumber = validNumber || strings.ContainsAny(data[possibleNumber.row-1][columnStart:columnEnd], validSymbols)
-	}
-
-	// Bottom Row
-	if possibleNumber.row+1 < len(data) {
-		validNumber = validNumber || strings.ContainsAny(data[possibleNumber.row+1][columnStart:columnEnd], validSymbols)
-	}
-
-	// Current Row
-	validNumber = validNumber || strings.ContainsAny(data[possibleNumber.row][columnStart:columnEnd], validSymbols)
-
-	return validNumber
-}
-
-func getNumberLocations(data []string) []number {
-	var numberLocations []number
-
-	for row, line := range data {
-		var currentNum = number{"", row, -1, -1}
-
-		for column, char := range line {
-			if unicode.IsDigit(char) {
-				if currentNum.columnStart == -1 {
-					currentNum.columnStart = column
-					currentNum.columnEnd = column
-				}
-
-				currentNum.value += string(char)
-				currentNum.columnEnd += 1
-			} else {
-				if currentNum.columnStart != -1 {
-					numberLocations = append(numberLocations, currentNum)
-				}
-
-				currentNum.value = ""
-				currentNum.columnStart = -1
-				currentNum.columnEnd = -1
-			}
-		}
-
-		if currentNum.columnStart != -1 {
-			numberLocations = append(numberLocations, currentNum)
-		}
-	}
-
-	return numberLocations
-}
-
-func partOne(data []string) int {
-	var sumPartNumbers int
-	var numberLocations = getNumberLocations(data)
-
-	for _, num := range numberLocations {
-		if checkNumber(data, num, "+-*/@&$#=%") {
-			value, _ := strconv.Atoi(num.value)
-			sumPartNumbers += value
-		}
-	}
-
-	return sumPartNumbers
-}
-
-func getGearLocations(data []string) []gear {
-	var gearLocations []gear
-	for i, line := range data {
-		for j, char := range line {
-			if string(char) == "*" {
-				gearLocations = append(gearLocations, gear{i, j, 0})
+func checkNumber(data *[]string, number *Number, symbolSet string) bool {
+	for cr := max(0, number.row-1); cr <= min(len(*data)-1, number.row+1); cr++ {
+		for cc := max(0, number.columnStart-1); cc <= min(len((*data)[number.row])-1, number.columnEnd); cc++ {
+			if !strings.Contains(symbolSet, string((*data)[cr][cc])) {
+				return true
 			}
 		}
 	}
 
-	return gearLocations
+	return false
 }
 
-func partTwo(data []string) int {
-	var sumOfGearRatios int
-	var numberLocations []number
-	var gearLocations = getGearLocations(data)
+func getNumbers(data *[]string) []Number {
+	var numbers []Number
 
-	for _, num := range getNumberLocations(data) {
-		if checkNumber(data, num, "*") {
-			numberLocations = append(numberLocations, num)
+	pattern := regexp.MustCompile(`\d+`)
+	for i, row := range *data {
+		matchedNumbers := pattern.FindAllStringIndex(row, -1)
+		for _, number := range matchedNumbers {
+			value, _ := strconv.Atoi((*data)[i][number[0]:number[1]])
+			numbers = append(numbers, Number{value, i, number[0], number[1]})
 		}
 	}
 
-	for _, currentGear := range gearLocations {
-		nums := make([]number, 0)
-		for _, num := range numberLocations {
-			if (num.columnStart <= currentGear.column && currentGear.column+1 <= num.columnEnd && max(0, num.row-1) <= currentGear.row && currentGear.row <= min(num.row+1, len(data))) || ((currentGear.column == num.columnStart-1 || currentGear.column == num.columnEnd) && (max(0, num.row-1) <= currentGear.row && currentGear.row <= min(num.row+1, len(data)))) {
-				currentGear.adjacent++
-				nums = append(nums, num)
-			}
-		}
+	return numbers
+}
 
-		if len(nums) == 2 {
-			gearRatio := 1
+func partOne(data *[]string, numbers *[]Number) int {
+	var sumParts int
 
-			for _, num := range nums {
-				value, _ := strconv.Atoi(num.value)
-				gearRatio *= value
-			}
-			fmt.Printf("Gear Pairs: %v\n", nums)
-			sumOfGearRatios += gearRatio
+	for _, number := range *numbers {
+		if checkNumber(data, &number, ".1234567890") {
+			sumParts += number.value
 		}
 	}
 
-	return sumOfGearRatios
+	return sumParts
+}
+
+func getGears(data *[]string) map[Gear][]Number {
+	var gears = make(map[Gear][]Number)
+	for i, row := range *data {
+		for j, col := range row {
+			if string(col) == "*" {
+				gears[Gear{i, j}] = nil
+			}
+		}
+	}
+
+	return gears
+}
+
+func partTwo(data *[]string, numbers *[]Number, gears *map[Gear][]Number) int {
+	var sumGearRatios int
+
+	for gear := range *gears {
+		for _, number := range *numbers {
+			if (number.row-1 <= gear.row && gear.row <= number.row+1) && (number.columnStart-1 <= gear.column && gear.column <= number.columnEnd) {
+				(*gears)[gear] = append((*gears)[gear], number)
+			}
+		}
+	}
+
+	for _, gearNumbers := range *gears {
+		if len(gearNumbers) == 2 {
+			sumGearRatios += gearNumbers[0].value * gearNumbers[1].value
+		}
+	}
+
+	return sumGearRatios
 }
 
 func main() {
@@ -144,12 +98,13 @@ func main() {
 		_, _ = fmt.Fprintf(os.Stderr, "Cannot open file 'input'\n")
 	}
 
-	fileArray := strings.Split(string(file), "\n")
-	fileArray = fileArray[:len(fileArray)-1]
+	fileArray := strings.Split(strings.TrimSpace(string(file)), "\n")
+	gears := getGears(&fileArray)
+	numbers := getNumbers(&fileArray)
 
 	// Part 1
-	fmt.Printf("Part 1: %d\n", partOne(fileArray))
+	fmt.Printf("Part 1: %d\n", partOne(&fileArray, &numbers))
 
 	// Part 2
-	fmt.Printf("Part 2: %d\n", partTwo(fileArray))
+	fmt.Printf("Part 2: %d\n", partTwo(&fileArray, &numbers, &gears))
 }
