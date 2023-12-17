@@ -64,7 +64,6 @@ func generateMaps(data []string) [][][]int {
 func getDestination(mapping *[][]int, src int) int {
 	for _, row := range *mapping {
 		if row[1] <= src && src < row[1]+row[2] {
-			// fmt.Printf("Start: %d, End: %d, Old: %d, Mapped: %d\n", row[0], row[0]+row[2], src, row[0]+src-row[1])
 			return src + row[0] - row[1]
 		}
 	}
