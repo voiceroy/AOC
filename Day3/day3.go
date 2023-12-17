@@ -20,10 +20,10 @@ type Gear struct {
 	column int
 }
 
-func checkNumber(data *[]string, number *Number, symbolSet string) bool {
-	for cr := max(0, number.row-1); cr <= min(len(*data)-1, number.row+1); cr++ {
-		for cc := max(0, number.columnStart-1); cc <= min(len((*data)[number.row])-1, number.columnEnd); cc++ {
-			if !strings.Contains(symbolSet, string((*data)[cr][cc])) {
+func checkNumber(data []string, number Number, symbolSet string) bool {
+	for cr := max(0, number.row-1); cr <= min(len(data)-1, number.row+1); cr++ {
+		for cc := max(0, number.columnStart-1); cc <= min(len((data)[number.row])-1, number.columnEnd); cc++ {
+			if !strings.Contains(symbolSet, string((data)[cr][cc])) {
 				return true
 			}
 		}
@@ -32,14 +32,14 @@ func checkNumber(data *[]string, number *Number, symbolSet string) bool {
 	return false
 }
 
-func getNumbers(data *[]string) []Number {
+func getNumbers(data []string) []Number {
 	var numbers []Number
 
 	pattern := regexp.MustCompile(`\d+`)
-	for i, row := range *data {
+	for i, row := range data {
 		matchedNumbers := pattern.FindAllStringIndex(row, -1)
 		for _, number := range matchedNumbers {
-			value, _ := strconv.Atoi((*data)[i][number[0]:number[1]])
+			value, _ := strconv.Atoi(data[i][number[0]:number[1]])
 			numbers = append(numbers, Number{value, i, number[0], number[1]})
 		}
 	}
@@ -47,11 +47,11 @@ func getNumbers(data *[]string) []Number {
 	return numbers
 }
 
-func partOne(data *[]string, numbers *[]Number) int {
+func partOne(data []string, numbers []Number) int {
 	var sumParts int
 
-	for _, number := range *numbers {
-		if checkNumber(data, &number, ".1234567890") {
+	for _, number := range numbers {
+		if checkNumber(data, number, ".1234567890") {
 			sumParts += number.value
 		}
 	}
@@ -59,9 +59,9 @@ func partOne(data *[]string, numbers *[]Number) int {
 	return sumParts
 }
 
-func getGears(data *[]string) map[Gear][]Number {
+func getGears(data []string) map[Gear][]Number {
 	var gears = make(map[Gear][]Number)
-	for i, row := range *data {
+	for i, row := range data {
 		for j, col := range row {
 			if string(col) == "*" {
 				gears[Gear{i, j}] = nil
@@ -72,18 +72,18 @@ func getGears(data *[]string) map[Gear][]Number {
 	return gears
 }
 
-func partTwo(data *[]string, numbers *[]Number, gears *map[Gear][]Number) int {
+func partTwo(data []string, numbers []Number, gears map[Gear][]Number) int {
 	var sumGearRatios int
 
-	for gear := range *gears {
-		for _, number := range *numbers {
+	for gear := range gears {
+		for _, number := range numbers {
 			if (number.row-1 <= gear.row && gear.row <= number.row+1) && (number.columnStart-1 <= gear.column && gear.column <= number.columnEnd) {
-				(*gears)[gear] = append((*gears)[gear], number)
+				gears[gear] = append(gears[gear], number)
 			}
 		}
 	}
 
-	for _, gearNumbers := range *gears {
+	for _, gearNumbers := range gears {
 		if len(gearNumbers) == 2 {
 			sumGearRatios += gearNumbers[0].value * gearNumbers[1].value
 		}
@@ -99,12 +99,12 @@ func main() {
 	}
 
 	fileArray := strings.Split(strings.TrimSpace(string(file)), "\n")
-	gears := getGears(&fileArray)
-	numbers := getNumbers(&fileArray)
+	gears := getGears(fileArray)
+	numbers := getNumbers(fileArray)
 
 	// Part 1
-	fmt.Printf("Part 1: %d\n", partOne(&fileArray, &numbers))
+	fmt.Printf("Part 1: %d\n", partOne(fileArray, numbers))
 
 	// Part 2
-	fmt.Printf("Part 2: %d\n", partTwo(&fileArray, &numbers, &gears))
+	fmt.Printf("Part 2: %d\n", partTwo(fileArray, numbers, gears))
 }

@@ -61,8 +61,8 @@ func generateMaps(data []string) [][][]int {
 	return mapArray
 }
 
-func getDestination(mapping *[][]int, src int) int {
-	for _, row := range *mapping {
+func getDestination(mapping [][]int, src int) int {
+	for _, row := range mapping {
 		if row[1] <= src && src < row[1]+row[2] {
 			return src + row[0] - row[1]
 		}
@@ -71,11 +71,11 @@ func getDestination(mapping *[][]int, src int) int {
 	return src
 }
 
-func partOne(seeds *[]int, maps *[][][]int) int {
+func partOne(seeds []int, maps [][][]int) int {
 	lowestValue := math.MaxInt
-	for _, value := range *seeds {
-		for _, mapping := range *maps {
-			value = getDestination(&mapping, value)
+	for _, value := range seeds {
+		for _, mapping := range maps {
+			value = getDestination(mapping, value)
 		}
 
 		if value < lowestValue {
@@ -86,19 +86,19 @@ func partOne(seeds *[]int, maps *[][][]int) int {
 	return lowestValue
 }
 
-func generateSeedRanges(seeds *[]int) [][]int {
+func generateSeedRanges(seeds []int) [][]int {
 	var seedRanges [][]int
-	for i := 0; i < len(*seeds); i += 2 {
-		seedRanges = append(seedRanges, []int{(*seeds)[i], (*seeds)[i] + (*seeds)[i+1]})
+	for i := 0; i < len(seeds); i += 2 {
+		seedRanges = append(seedRanges, []int{(seeds)[i], (seeds)[i] + (seeds)[i+1]})
 	}
 
 	return seedRanges
 }
 
-func partTwo(seeds *[]int, maps *[][][]int) int {
+func partTwo(seeds []int, maps [][][]int) int {
 	var seedRanges = generateSeedRanges(seeds)
 
-	for _, mapping := range *maps {
+	for _, mapping := range maps {
 		var splitRanges [][]int
 		for len(seedRanges) > 0 {
 			seedRange := seedRanges[len(seedRanges)-1]
@@ -146,8 +146,8 @@ func main() {
 	var mappings [][][]int = generateMaps(fileArray)
 
 	// Part 1
-	fmt.Printf("Part 1: %d\n", partOne(&seeds, &mappings))
+	fmt.Printf("Part 1: %d\n", partOne(seeds, mappings))
 
 	// Part 2
-	fmt.Printf("Part 2: %d\n", partTwo(&seeds, &mappings))
+	fmt.Printf("Part 2: %d\n", partTwo(seeds, mappings))
 }

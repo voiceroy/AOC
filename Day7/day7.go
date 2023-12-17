@@ -1,194 +1,135 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
 	"os"
 	"slices"
 	"strings"
 )
 
-type hand struct {
+type Hand struct {
 	hand            string
-	morphedHand     string
 	handType        int
 	morphedHandType int
 	bid             int
 }
 
-func getHandType(hand string) int {
-	var handType int
+func morphHand(hand string) string {
+	if !strings.Contains(hand, "J") {
+		return hand
+	}
 
-	cardFreq := make(map[rune]int)
+	var frequencies = make(map[rune]int)
 	for _, card := range hand {
-		cardFreq[card]++
+		frequencies[card]++
 	}
 
-	var frequencies = make([]int, 0, len(cardFreq))
-	for _, freq := range cardFreq {
-		frequencies = append(frequencies, freq)
-	}
-
-	slices.Sort(frequencies)
-	if len(frequencies) == 1 {
-		handType = 7
-	} else if len(frequencies) == 2 {
-		if slices.Equal(frequencies, []int{1, 4}) {
-			handType = 6
-		} else {
-			handType = 5
+	var maxCard rune
+	var maxCount int
+	for card, count := range frequencies {
+		if maxCount < count && card != 74 {
+			maxCard = card
+			maxCount = count
 		}
-	} else if len(frequencies) == 3 {
-		if slices.Equal(frequencies, []int{1, 1, 3}) {
-			handType = 4
-		} else {
-			handType = 3
-		}
-	} else if len(frequencies) == 4 {
-		handType = 2
-	} else if len(frequencies) == len(hand) {
-		handType = 1
 	}
 
-	return handType
+	if maxCard == 0 {
+		return hand
+	}
+	return strings.ReplaceAll(hand, "J", string(maxCard))
 }
 
-func morphHand(oldHand string) string {
-	cardFreq := make(map[rune]int)
-	for _, card := range oldHand {
-		cardFreq[card]++
+func getHandRank(hand string) int {
+	var handRank int
+
+	var cardCount = make(map[rune]int)
+	for _, card := range hand {
+		cardCount[card]++
 	}
 
-	maxK := rune(0)
-	maxV := 0
-
-	for k, v := range cardFreq {
-		if v > maxV && string(k) != "J" {
-			maxV = v
-			maxK = k
-		}
+	var counts []int
+	for _, count := range cardCount {
+		counts = append(counts, count)
 	}
 
-	if maxK == 0 {
-		return oldHand
-	} else {
-		return strings.Replace(oldHand, "J", string(maxK), -1)
+	slices.Sort(counts)
+	if slices.Compare(counts, []int{5}) == 0 {
+		handRank = 7
+	} else if slices.Compare(counts, []int{1, 4}) == 0 {
+		handRank = 6
+	} else if slices.Compare(counts, []int{2, 3}) == 0 {
+		handRank = 5
+	} else if slices.Compare(counts, []int{1, 1, 3}) == 0 {
+		handRank = 4
+	} else if slices.Compare(counts, []int{1, 2, 2}) == 0 {
+		handRank = 3
+	} else if slices.Compare(counts, []int{1, 1, 1, 2}) == 0 {
+		handRank = 2
+	} else if slices.Compare(counts, []int{1, 1, 1, 1, 1}) == 0 {
+		handRank = 1
 	}
+
+	return handRank
 }
 
-func processHands(data []string) []hand {
-	var processedHands []hand
-	var handString string
+func processHands(data []string) []Hand {
+	var processedHands []Hand
+
 	var bid int
-
+	var hand string
 	for _, line := range data {
-		_, _ = fmt.Sscanf(line, "%s %d", &handString, &bid)
-		morphedString := morphHand(handString)
-		processedHands = append(processedHands, hand{handString, morphedString, getHandType(handString), getHandType(morphedString), bid})
+		fmt.Sscanf(line, "%s %d\n", &hand, &bid)
+		morphedHand := morphHand(hand)
+		processedHands = append(processedHands, Hand{hand, getHandRank(hand), getHandRank(morphedHand), bid})
 	}
 
 	return processedHands
 }
 
-func compareHands(hand1, hand2 hand) int {
-	var result int
-	var cardPriority map[string]int
+func genCompareHandFunc(cardStrength string, newRule bool) func(a, b Hand) int {
+	return func(a, b Hand) int {
+		var aHandType, bHandType = a.handType, b.handType
+		if newRule {
+			aHandType, bHandType = a.morphedHandType, b.morphedHandType
+		}
 
-	cardPriority = map[string]int{
-		"A": 13,
-		"K": 12,
-		"Q": 11,
-		"J": 10,
-		"T": 9,
-		"9": 8,
-		"8": 7,
-		"7": 6,
-		"6": 5,
-		"5": 4,
-		"4": 3,
-		"3": 2,
-		"2": 1,
-	}
-
-	if hand1.handType == hand2.handType {
-		for i := 0; i < len(hand1.hand); i++ {
-			if cardPriority[string(hand1.hand[i])] > cardPriority[string(hand2.hand[i])] {
-				result = 1
-				break
-			} else if cardPriority[string(hand1.hand[i])] < cardPriority[string(hand2.hand[i])] {
-				result = -1
-				break
+		if aHandType > bHandType {
+			return 1
+		} else if aHandType == bHandType {
+			for i := 0; i < len(a.hand); i++ {
+				switch cmp.Compare(strings.Index(cardStrength, string(a.hand[i])), strings.Index(cardStrength, string(b.hand[i]))) {
+				case 1:
+					return 1
+				case -1:
+					return -1
+				}
 			}
 		}
-	} else if hand1.handType > hand2.handType {
-		result = 1
-	} else if hand1.handType < hand2.handType {
-		result = -1
+
+		return -1
 	}
-
-	return result
 }
 
-func sortHands(hands []hand) {
-	slices.SortStableFunc(hands, compareHands)
-}
-
-func partOne(hands []hand) int {
+func partOne(hands []Hand) int {
 	var totalWinnings int
 
+	compareFunc := genCompareHandFunc("23456789TJQKA", false)
+	slices.SortStableFunc(hands, compareFunc)
 	for i, hand := range hands {
-		totalWinnings += (i + 1) * hand.bid
+		totalWinnings += hand.bid * (i + 1)
 	}
 
 	return totalWinnings
 }
 
-func compareHandsWithNewRules(hand1, hand2 hand) int {
-	var result int
-
-	cardPriority := map[string]int{
-		"A": 13,
-		"K": 12,
-		"Q": 11,
-		"T": 10,
-		"9": 9,
-		"8": 8,
-		"7": 7,
-		"6": 6,
-		"5": 5,
-		"4": 4,
-		"3": 3,
-		"2": 2,
-		"J": 1,
-	}
-
-	if hand1.morphedHandType == hand2.morphedHandType {
-		for i := 0; i < len(hand1.hand); i++ {
-			if cardPriority[string(hand1.hand[i])] > cardPriority[string(hand2.hand[i])] {
-				result = 1
-				break
-			} else if cardPriority[string(hand1.hand[i])] < cardPriority[string(hand2.hand[i])] {
-				result = -1
-				break
-			}
-		}
-	} else if hand1.morphedHandType > hand2.morphedHandType {
-		result = 1
-	} else if hand1.morphedHandType < hand2.morphedHandType {
-		result = -1
-	}
-
-	return result
-}
-
-func sortHandsWithNewRules(hands []hand) {
-	slices.SortStableFunc(hands, compareHandsWithNewRules)
-}
-
-func partTwo(hands []hand) int {
+func partTwo(hands []Hand) int {
 	var totalWinnings int
 
+	compareFunc := genCompareHandFunc("J23456789TQKA", true)
+	slices.SortStableFunc(hands, compareFunc)
 	for i, hand := range hands {
-		totalWinnings += (i + 1) * hand.bid
+		totalWinnings += hand.bid * (i + 1)
 	}
 
 	return totalWinnings
@@ -205,10 +146,8 @@ func main() {
 	processedHands := processHands(fileArray)
 
 	// Part 1
-	sortHands(processedHands)
 	fmt.Printf("Part 1: %d\n", partOne(processedHands))
 
 	// Part 2
-	sortHandsWithNewRules(processedHands)
 	fmt.Printf("Part 2: %d\n", partTwo(processedHands))
 }

@@ -31,6 +31,7 @@ func partOne(data []string) int {
 				possible++
 			}
 		}
+
 		product *= possible
 	}
 
@@ -48,8 +49,8 @@ func partTwo(data []string) int {
 			possible++
 		}
 	}
-	product *= possible
 
+	product *= possible
 	return product
 }
 

@@ -8,23 +8,23 @@ import (
 )
 
 func partOne(data []string) int {
-	var allCardsWorth int
+	var totalPoints int
 
 	for _, line := range data {
-		var currentCardWorth int
+		numbers := strings.Split(strings.Split(line, ":")[1], " | ")
+		winningNumbers, myNumbers := strings.Fields(numbers[0]), strings.Fields(numbers[1])
 
-		numbersPresent := strings.Split(strings.Split(line, ":")[1], " | ")
-		winningNumbers, myNumbers := strings.Fields(numbersPresent[0]), strings.Fields(numbersPresent[1])
+		var currentCardPoints int
 		for _, number := range myNumbers {
 			if slices.Contains(winningNumbers, number) {
-				currentCardWorth = max(1, currentCardWorth*2)
+				currentCardPoints = max(1, currentCardPoints*2)
 			}
 		}
 
-		allCardsWorth += currentCardWorth
+		totalPoints += currentCardPoints
 	}
 
-	return allCardsWorth
+	return totalPoints
 }
 
 func generateRange(start, end int) []int {
@@ -37,32 +37,30 @@ func generateRange(start, end int) []int {
 }
 
 func partTwo(data []string) int {
-	var cardWinsNoOfCards = make(map[int]int)
-	var cardQueue []int
+	var cardsWon = make([]int, len(data))
+	for i := range cardsWon {
+		cardsWon[i] = 1
+	}
 
-	// Calculate what card wins how many cards
 	for i, card := range data {
-		var currentCardWins int
-
 		numbersPresent := strings.Split(strings.Split(card, ":")[1], " | ")
 		winningNumbers, myNumbers := strings.Fields(numbersPresent[0]), strings.Fields(numbersPresent[1])
+
+		var matches int
 		for _, number := range myNumbers {
 			if slices.Contains(winningNumbers, number) {
-				currentCardWins += 1
+				matches += 1
 			}
 		}
 
-		cardWinsNoOfCards[i+1] = currentCardWins
-		cardQueue = append(cardQueue, i+1)
+		for wonCard := i + 1; wonCard < i+matches+1; wonCard++ {
+			cardsWon[wonCard] += cardsWon[i]
+		}
 	}
 
-	var cardsProcessed int
-	var queueLength = len(cardQueue)
-	for cardsProcessed < queueLength {
-		generatedRange := generateRange(cardQueue[cardsProcessed], cardQueue[cardsProcessed]+cardWinsNoOfCards[cardQueue[cardsProcessed]])
-		cardQueue = append(cardQueue, generatedRange...)
-		cardsProcessed++
-		queueLength += len(generatedRange)
+	cardsProcessed := 0
+	for _, won := range cardsWon {
+		cardsProcessed += won
 	}
 
 	return cardsProcessed
@@ -75,8 +73,7 @@ func main() {
 		return
 	}
 
-	fileArray := strings.Split(string(file), "\n")
-	fileArray = fileArray[:len(fileArray)-1]
+	fileArray := strings.Split(strings.TrimSpace(string(file)), "\n")
 
 	// Part 1
 	fmt.Printf("Part 1: %d\n", partOne(fileArray))
