@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -50,6 +51,34 @@ func partOne(data []string) int64 {
 	return (getArea(coordinates) - pathLength/2 + 1) + pathLength
 }
 
+func partTwo(data []string) int64 {
+	var coordinates []Point
+	var pathLength int64
+
+	var currentCoordinate = Point{0, 0}
+	for _, line := range data {
+		hexCode := strings.Fields(line)[2]
+		hexCode = hexCode[2 : len(hexCode)-1]
+		step, _ := strconv.ParseInt(hexCode[:5], 16, 64)
+
+		switch string(hexCode[len(hexCode)-1]) {
+		case "0":
+			currentCoordinate.x += step
+		case "1":
+			currentCoordinate.y -= step
+		case "2":
+			currentCoordinate.x -= step
+		case "3":
+			currentCoordinate.y += step
+		}
+
+		pathLength += step
+		coordinates = append(coordinates, currentCoordinate)
+	}
+
+	return (getArea(coordinates) - pathLength/2 + 1) + pathLength
+}
+
 func main() {
 	file, err := os.ReadFile("input")
 	if err != nil {
@@ -61,4 +90,7 @@ func main() {
 
 	// Part 1
 	fmt.Printf("Part 1: %d\n", partOne(fileArray))
+
+	// Part 2
+	fmt.Printf("Part 2: %d\n", partTwo(fileArray))
 }
