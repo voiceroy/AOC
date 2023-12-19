@@ -44,18 +44,12 @@ func gcd(a, b int) int {
 	return a
 }
 
-func lcm(integers ...int) int {
-	result := integers[0] * integers[1] / gcd(integers[0], integers[1])
-
-	for i := 2; i < len(integers); i++ {
-		result = lcm(result, integers[i])
-	}
-
-	return result
+func lcm(a, b int) int {
+	return a * b / gcd(a, b)
 }
 
 func partTwo(directions string, nodeMap map[string][]string) int {
-	var stepsForEachNode []int
+	var totalSteps = 1
 
 	for node := range nodeMap {
 		if strings.HasSuffix(node, "A") {
@@ -63,7 +57,7 @@ func partTwo(directions string, nodeMap map[string][]string) int {
 
 			for i := 0; ; i++ {
 				if strings.HasSuffix(currentNode, "Z") {
-					stepsForEachNode = append(stepsForEachNode, i)
+					totalSteps = lcm(totalSteps, i)
 					break
 				}
 
@@ -77,7 +71,7 @@ func partTwo(directions string, nodeMap map[string][]string) int {
 		}
 	}
 
-	return lcm(stepsForEachNode...)
+	return totalSteps
 }
 
 func main() {
