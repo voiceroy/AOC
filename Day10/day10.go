@@ -16,6 +16,24 @@ func (current Point) Equal(other Point) bool {
 	return current.x == other.x && current.y == other.y
 }
 
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+
+	return x
+}
+
+func calcArea(points []Point) int {
+	var totalArea int
+	for i := 0; i < len(points)-1; i++ {
+		totalArea += (points[i].x * points[i+1].y) - (points[i+1].x * points[i].y)
+	}
+	totalArea += (points[len(points)-1].x * points[0].y) - (points[0].x * points[len(points)-1].y)
+
+	return abs(totalArea) / 2
+}
+
 func processGrid(data []string) Point {
 	start := Point{0, 0}
 
@@ -62,7 +80,7 @@ outerLoop:
 	return start
 }
 
-func partOne(data []string, start Point, seen map[Point]bool, directions map[string][][]int) int {
+func partOne(data []string, start Point, seen *[]Point, directions map[string][][]int) int {
 	var pathLength = 1
 
 	previous, next := start, start
@@ -74,7 +92,7 @@ func partOne(data []string, start Point, seen map[Point]bool, directions map[str
 				previous = next
 				next.y += direction[0]
 				next.x += direction[1]
-				seen[previous] = true
+				*seen = append(*seen, previous)
 				break
 			}
 		}
@@ -83,6 +101,10 @@ func partOne(data []string, start Point, seen map[Point]bool, directions map[str
 	}
 
 	return pathLength / 2
+}
+
+func partTwo(data []string, seen []Point) int {
+	return calcArea(seen) + 1 - len(seen)/2
 }
 
 func main() {
@@ -106,11 +128,11 @@ func main() {
 		"7": {{0, -1}, {1, 0}},
 		"F": {{0, 1}, {1, 0}},
 	}
-
-	seen := map[Point]bool{
-		start: true,
-	}
+	seen := []Point{start}
 
 	// Part 1
-	fmt.Printf("Part 1: %d\n", partOne(fileArray, start, seen, directions))
+	fmt.Printf("Part 1: %d\n", partOne(fileArray, start, &seen, directions))
+
+	// Part 2
+	fmt.Printf("Part 2: %d\n", partTwo(fileArray, seen))
 }
