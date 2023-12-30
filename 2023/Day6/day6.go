@@ -61,8 +61,7 @@ func main() {
 		return
 	}
 
-	fileArray := strings.Split(string(file), "\n")
-	fileArray = fileArray[:len(fileArray)-1]
+	fileArray := strings.Split(strings.TrimSpace(string(file)), "\n")
 
 	// Part 1
 	fmt.Printf("Part 1: %d\n", partOne(fileArray))
