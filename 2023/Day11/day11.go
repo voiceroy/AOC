@@ -3,66 +3,48 @@ package main
 import (
 	"fmt"
 	"os"
-	"slices"
 	"strings"
 )
 
-type location struct {
-	x int
-	y int
-}
-
 func partOne(data []string, scale int) int {
-	var sumLengths int
-	var emptyRows, emptyColumns []int
-	var galaxyLocations []location
+	var totalDistance, rowPsa, colPsa, galaxies = 0, []int{0}, []int{0}, [][]int{}
+	for _, row := range data {
+		if strings.Contains(row, "#") {
+			rowPsa = append(rowPsa, 1+rowPsa[len(rowPsa)-1])
+		} else {
+			rowPsa = append(rowPsa, scale+rowPsa[len(rowPsa)-1])
+		}
+	}
+
+	for i := 0; i < len(data[0]); i++ {
+		colString := ""
+		for _, row := range data {
+			colString += string(row[i])
+		}
+
+		if strings.Contains(colString, "#") {
+			colPsa = append(colPsa, 1+colPsa[len(colPsa)-1])
+		} else {
+			colPsa = append(colPsa, scale+colPsa[len(colPsa)-1])
+		}
+	}
 
 	for i, row := range data {
-		if !strings.Contains(row, "#") {
-			emptyRows = append(emptyRows, i)
-		}
-	}
-
-outerLoop:
-	for j := range data[0] {
-		for i := range data {
-			if string(data[i][j]) == "#" {
-				continue outerLoop
-			}
-		}
-
-		emptyColumns = append(emptyColumns, j)
-	}
-
-	for i, row := range data {
-		for j, char := range row {
-			if string(char) == "#" {
-				galaxyLocations = append(galaxyLocations, location{i, j})
+		for j, col := range row {
+			if string(col) == "#" {
+				galaxies = append(galaxies, []int{i, j})
 			}
 		}
 	}
 
-	for i, loc := range galaxyLocations {
-		for _, loc2 := range galaxyLocations[:i] {
-			for r := min(loc.x, loc2.x); r < max(loc.x, loc2.x); r++ {
-				if slices.Contains(emptyRows, r) {
-					sumLengths += scale
-				} else {
-					sumLengths++
-				}
-			}
-
-			for c := min(loc.y, loc2.y); c < max(loc.y, loc2.y); c++ {
-				if slices.Contains(emptyColumns, c) {
-					sumLengths += scale
-				} else {
-					sumLengths++
-				}
-			}
+	for i, galaxy := range galaxies {
+		for _, other := range galaxies[:i] {
+			totalDistance += rowPsa[max(galaxy[0], other[0])] - rowPsa[min(galaxy[0], other[0])]
+			totalDistance += colPsa[max(galaxy[1], other[1])] - colPsa[min(galaxy[1], other[1])]
 		}
 	}
 
-	return sumLengths
+	return totalDistance
 }
 
 func partTwo(data []string, scale int) int {
