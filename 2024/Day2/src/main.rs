@@ -20,9 +20,9 @@ fn parse_input() -> Result<Vec<Vec<i32>>, io::Error> {
     };
 
     Ok(file
-        .trim()
-        .lines()
-        .map(|x| x.split_whitespace())
+        .trim_ascii_end()
+        .split('\n')
+        .map(|x| x.split_ascii_whitespace())
         .map(|x| {
             x.map(|y| str::parse::<i32>(y).unwrap())
                 .collect::<Vec<i32>>()
@@ -78,10 +78,12 @@ fn part_two(lists: &[Vec<i32>]) -> i32 {
 }
 
 fn main() {
+    let timer_parse = timer("Parsing");
     let input = match parse_input() {
         Ok(parsed) => parsed,
         Err(_) => return,
     };
+    timer_parse();
 
     let timer_one = timer("Part One");
     let one = part_one(&input);
